@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
@@ -11,7 +11,47 @@ const columns = [
 ];
 
 function App() {
+  const initialCriteria = columns.reduce(
+    (acc, cur) => ({ ...acc, [cur.field]: '' }),
+    {}
+  );
   const [data, setData] = useState(usersData);
+  const [criteria, setCriteria] = useState(initialCriteria);
+
+  const resetTable = () => {
+    setData(usersData);
+  };
+
+  const onCriteriaChange = (column, value) => {
+    const newCriteria = {
+      ...criteria,
+    };
+    newCriteria[column] = value;
+    setCriteria(newCriteria);
+  };
+
+  useEffect(() => {
+    console.log(criteria);
+    filterTable();
+    return () => {};
+  }, [criteria]);
+
+  const filterTable = () => {
+    let newData = usersData.filter((row) => {
+      let passes = [true, true];
+      for (let field in criteria) {
+        if (criteria[field].trim()) {
+          passes.push(
+            String(row[field])
+              .toLowerCase()
+              .includes(criteria[field].toLowerCase())
+          );
+        }
+      }
+      return !passes.includes(false);
+    });
+    setData(newData);
+  };
 
   return (
     <div className='App'>
@@ -19,16 +59,30 @@ function App() {
         <thead>
           <tr>
             {columns.map((col) => {
-              return <th>{col.label}</th>;
+              return (
+                <th key={col.field}>
+                  {col.label}
+                  <input
+                    type='text'
+                    onChange={(e) =>
+                      onCriteriaChange(col.field, e.target.value)
+                    }
+                  />
+                </th>
+              );
             })}
           </tr>
         </thead>
         <tbody>
           {data.map((row) => {
             return (
-              <tr>
-                {columns.map((col) => {
-                  return <td>{row[col.field]}</td>;
+              <tr key={row.guid}>
+                {columns.map((col, index) => {
+                  return (
+                    <td key={`row-${row.guid} cell-${index}`}>
+                      {row[col.field]}
+                    </td>
+                  );
                 })}
               </tr>
             );
