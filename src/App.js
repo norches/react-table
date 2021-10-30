@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import logo from './logo.svg';
 import './App.css';
 
 const usersData = require('./api/users.json');
@@ -17,10 +16,7 @@ function App() {
   );
   const [data, setData] = useState(usersData);
   const [criteria, setCriteria] = useState(initialCriteria);
-
-  const resetTable = () => {
-    setData(usersData);
-  };
+  const [sortBy, setSortBy] = useState({ field: null, sort: 'asc' });
 
   const onCriteriaChange = (column, value) => {
     const newCriteria = {
@@ -30,13 +26,14 @@ function App() {
     setCriteria(newCriteria);
   };
 
-  useEffect(() => {
-    console.log(criteria);
-    filterTable();
-    return () => {};
-  }, [criteria]);
+  const onSortbySet = (field) => {
+    setSortBy({
+      field: field,
+      sort: sortBy.sort === 'asc' ? 'desc' : 'asc',
+    });
+  };
 
-  const filterTable = () => {
+  useEffect(() => {
     let newData = usersData.filter((row) => {
       let passes = [true, true];
       for (let field in criteria) {
@@ -51,7 +48,15 @@ function App() {
       return !passes.includes(false);
     });
     setData(newData);
-  };
+    return () => {};
+  }, [criteria]);
+
+  useEffect(() => {
+    let sortedData = data.sort((a, b) =>
+      a[sortBy.field] < b[sortBy.field] ? (sortBy.sort === 'asc' ? 1 : -2) : -1
+    );
+    setData(sortedData);
+  }, [data, sortBy]);
 
   return (
     <div className='App'>
@@ -60,14 +65,28 @@ function App() {
           <tr>
             {columns.map((col) => {
               return (
-                <th key={col.field}>
-                  {col.label}
-                  <input
-                    type='text'
-                    onChange={(e) =>
-                      onCriteriaChange(col.field, e.target.value)
-                    }
-                  />
+                <th key={col.field} className='table-header'>
+                  <div
+                    className='table-header-label'
+                    onClick={() => onSortbySet(col.field)}
+                  >
+                    <div>{col.label}</div>
+                    <div className='table-header-sort'>
+                      {sortBy.field === col.field && (
+                        <span className='table-header-sort-icon'>
+                          {sortBy.sort === 'asc' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className='table-header-input'>
+                    <input
+                      type='text'
+                      onChange={(e) =>
+                        onCriteriaChange(col.field, e.target.value)
+                      }
+                    />
+                  </div>
                 </th>
               );
             })}
