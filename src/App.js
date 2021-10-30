@@ -1,23 +1,41 @@
+import { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+const usersData = require('./api/users.json');
+const columns = [
+  { field: 'name', label: 'Имя' },
+  { field: 'age', label: 'Возраст' },
+  { field: 'email', label: 'E-mail' },
+  { field: 'phone', label: 'Номер телефона' },
+];
+
 function App() {
+  const [data, setData] = useState(usersData);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='App'>
+      <table>
+        <thead>
+          <tr>
+            {columns.map((col) => {
+              return <th>{col.label}</th>;
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row) => {
+            return (
+              <tr>
+                {columns.map((col) => {
+                  return <td>{row[col.field]}</td>;
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {}
     </div>
   );
 }
